@@ -1,0 +1,29 @@
+BGP setup on router:
+
+conf t
+router bgp 10  - 10 is the number of routers autonomous system
+network 1.1.1.1 mask 255.255.255.0  - local network that will be advertised
+neighbor 10.0.1.2 remote-as 20  - ip of neighbor router from autonomous system 20
+
+Set up BGP with ospf. Routes will be advertised only FROM local network.
+That means packages will be received only TO local network:
+
+conf t
+router bgp 10
+redistribute ospf 200
+exit
+exit
+
+Set up default gateway on local network router that is connected to the other world through another router:
+
+conf t
+ip default-network 30.0.0.0
+ip route 0.0.0.0 0.0.0.0 30.0.0.1  - ip address of router through which we connect to the world
+
+
+Task solution:
+
+- Set up ip and default gateway on PCs. E.g. for PC-1:
+
+ip 1.0.0.2/24 1.0.0.1
+save

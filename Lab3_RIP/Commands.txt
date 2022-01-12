@@ -1,0 +1,103 @@
+show run
+show ip rip database
+debug ip rip
+
+Save config on router:
+
+wr mem
+
+Save config on PC:
+
+save
+
+
+Assigning ip addresses on interfaces on router:
+
+configure t
+interface range fa0/0-1
+no shutdown
+exit
+interface fa0/0
+ip address 1.0.0.1 255.255.255.0
+interface fa0/1
+ip address 2.0.0.1 255.255.255.0
+exit
+exit
+
+
+Routing:
+
+configure t
+ip route 2.0.0.0 255.255.255.0 fa0/3 3.0.0.2
+
+
+Setting up RIP:
+
+configure t
+router rip
+network 1.0.0.0
+network 3.0.0.0
+version 2
+no auto-summary  # disabling class networks
+
+
+Track package route on PC:
+
+trace 2.0.0.2
+
+
+
+Task solution:
+
+- Set up ip and default gateway on PCs. E.g. for PC-1:
+
+ip 1.0.0.2/24 1.0.0.1
+save
+
+- Enable interfaces on routers. Run on all routers:
+
+configure t
+interface range fa0/0 , fa0/1 , fa1/0
+no shutdown
+exit
+exit
+
+- Set up ip on all routers. E.g. for R1:
+
+configure t
+interface fa0/0
+ip address 10.0.0.1 255.255.255.0
+interface fa0/1
+ip address 50.0.0.2 255.255.255.0
+interface fa1/0
+ip address 1.0.0.1 255.255.255.0
+exit
+exit
+
+- Set up RIP on all routers. E.g. for R1:
+
+configure t
+router rip
+network 10.0.0.0
+network 50.0.0.0
+network 1.0.0.0
+version 2
+no auto-summary
+exit
+exit
+
+- Set RIP timers on all routers:
+
+configure t
+router rip
+timers basic 1 3 3 4
+exit
+exit
+
+- Save config on all routers:
+
+wr mem
+
+- Track routes on PCs. E.g. for PC-1:
+
+trace 4.0.0.2

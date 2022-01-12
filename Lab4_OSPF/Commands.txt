@@ -1,0 +1,107 @@
+show ip ospf database router self-originate  - message that router sends
+show ip ospf database  - topology information
+show ip ospf rib  - connection ways
+
+
+OSPF setup:
+
+configure t
+interface fa0/0
+ip address 1.1.1.1 255.255.255.0
+no shutdown
+ip ospf network point-to-point   или ip ospf network broadcast, если подключены несколько других роутеров через свитч
+exit
+router ospf 200
+router-id 1.1.1.1
+log-adjacency-changes detail  - включаем логи
+network 1.1.1.0 0.0.0.255 area 0
+end
+exit
+
+
+Task solution:
+
+- Set up ip and default gateway on PCs. E.g. for PC-1:
+
+ip 1.0.0.2/24 1.0.0.1
+save
+
+- Enable interfaces on routers.
+
+Run on all routers:
+
+configure t
+interface range fa0/0 , fa0/1
+no shutdown
+exit
+exit
+
+Run on routers R1, R2, R3:
+
+configure t
+interface fa1/0
+no shutdown
+exit
+exit
+
+- Set up ip on all routers. E.g. for R1:
+
+configure t
+interface fa0/0
+ip address 10.0.0.2 255.255.255.0
+interface fa0/1
+ip address 10.0.2.1 255.255.255.0
+interface fa1/0
+ip address 1.0.0.1 255.255.255.0
+exit
+exit
+
+- Set up OSFP advertisement on all routers. E.g. for R1:
+
+configure t
+router ospf 200
+router-id 1.1.1.1
+log-adjacency-changes detail
+network 1.0.0.0 0.0.0.255 area 0
+network 10.0.0.0 0.0.0.255 area 0
+network 10.0.2.0 0.0.0.255 area 0
+exit
+exit
+
+
+- Set up OSPF on routers interfaces:
+
+R1, R2:
+
+configure t
+interface range fa0/0 , fa0/1
+ip ospf network point-to-point
+exit
+exit
+
+R3:
+
+configure t
+interface range fa0/0 , fa0/1
+ip ospf network point-to-point
+exit
+interface fa1/0
+ip ospf network broadcast
+exit
+exit
+
+R4, R5:
+
+configure t
+interface fa0/0
+ip ospf network broadcast
+exit
+exit
+
+- Save config on all routers:
+
+wr mem
+
+- Track routes on PCs. E.g. for PC-1:
+
+trace 4.0.0.2

@@ -1,0 +1,34 @@
+show spanning-tree
+show interface status
+
+Task 1 solution:
+
+- Configuring EtherChannel. Run on all switches in Lab1_STP_1:
+
+enable
+configure t
+interface range Gi0/0-1
+shutdown
+channel-group 1 mode on
+no shutdown
+exit
+interface range Gi0/2-3
+shutdown
+channel-group 2 mode on
+no shutdown 
+end
+disable
+
+
+Task 2 solution:
+
+- Make the same thing as in task 1.
+
+- Run the following commands on L2Switch-5:
+
+enable
+configure t
+interface Po2
+spanning-tree vlan 1 cost 1000
+end
+disable
