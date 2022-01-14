@@ -68,7 +68,6 @@ network 10.0.2.0 0.0.0.255 area 0
 exit
 exit
 
-
 - Set up OSPF on routers interfaces:
 
 R1, R2:

@@ -1,9 +1,13 @@
+show ip bgp
+
 BGP setup on router:
 
 conf t
 router bgp 10  - 10 is the number of routers autonomous system
 network 1.1.1.1 mask 255.255.255.0  - local network that will be advertised
 neighbor 10.0.1.2 remote-as 20  - ip of neighbor router from autonomous system 20
+exit
+exit
 
 Set up BGP with ospf. Routes will be advertised only FROM local network.
 That means packages will be received only TO local network:
@@ -23,7 +27,128 @@ ip route 0.0.0.0 0.0.0.0 30.0.0.1  - ip address of router through which we conne
 
 Task solution:
 
-- Set up ip and default gateway on PCs. E.g. for PC-1:
+- Enable interfaces on routers.
 
-ip 1.0.0.2/24 1.0.0.1
-save
+Run on all routers:
+
+configure t
+interface range fa0/0 , fa0/1
+no shutdown
+exit
+exit
+
+Run on routers R1, R4:
+
+configure t
+interface range fa1/0 , fa2/0
+no shutdown
+exit
+exit
+
+- Set up ip on all routers. E.g. for R1:
+
+configure t
+interface fa0/0
+ip address 1.0.0.1 255.255.255.0
+interface fa0/1
+ip address 1.0.1.1 255.255.255.0
+interface fa1/0
+ip address 10.0.1.1 255.255.255.0
+interface fa2/0
+ip address 10.0.0.1 255.255.255.0
+exit
+exit
+
+
+AS1:
+
+- Set up OSFP advertisement on routers R1, R2, R3. E.g. for R1:
+
+configure t
+router ospf 200
+router-id 1.1.1.1
+log-adjacency-changes detail
+network 1.0.0.0 0.0.0.255 area 0
+network 1.0.1.0 0.0.0.255 area 0
+exit
+exit
+
+Also set R1 as default router:
+
+configure t
+router ospf 200
+default-information originate always
+exit
+exit
+
+- Set up OSPF on interfaces of routers R1, R2, R3:
+
+configure t
+interface range fa0/0 , fa0/1
+ip ospf network point-to-point
+exit
+exit
+
+- Set up BGP on R1:
+
+conf t
+router bgp 1
+neighbor 10.0.0.2 remote-as 2
+neighbor 10.0.1.2 remote-as 3
+redistribute ospf 200
+exit
+exit
+
+
+AS2:
+
+- Set up BGP on R7:
+
+conf t
+router bgp 2
+neighbor 10.0.0.1 remote-as 1
+neighbor 10.0.2.1 remote-as 3
+exit
+exit
+
+
+AS3:
+
+- Set up IBGP on R5, R6. E.g. for R5:
+
+conf t
+router bgp 3
+network 3.0.0.0 mask 255.255.255.0
+network 3.0.2.0 mask 255.255.255.0
+neighbor 3.0.0.1 remote-as 3
+neighbor 3.0.2.1 remote-as 3
+exit
+exit
+
+- Set up BGP on R4:
+
+conf t
+router bgp 3
+network 3.0.0.0 mask 255.255.255.0
+network 3.0.1.0 mask 255.255.255.0
+network 10.0.1.0 mask 255.255.255.0
+network 10.0.2.0 mask 255.255.255.0
+neighbor 3.0.0.2 remote-as 3
+neighbor 3.0.1.2 remote-as 3
+neighbor 10.0.1.1 remote-as 1
+neighbor 10.0.2.2 remote-as 2
+exit
+exit
+
+
+- Set BGP timers on routers R1, R4-R7. E.g. for R4-R6:
+
+conf t
+router bgp 3
+timers bgp 5 20
+exit
+exit
+
+- Save config on all routers:
+
+wr mem
