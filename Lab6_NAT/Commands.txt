@@ -1,0 +1,91 @@
+NAT setup on router:
+
+conf t
+access-list 1 permit 2.2.2.0 0.0.0.255  - 2.2.2.0/24 is the local network
+int f0/1  - interface to local network
+ip nat inside
+int f0/0  - interface to internet
+ip nat outside
+exit
+ip nat inside source list 1 interface f0/0 overload  - use PAT on f0/1 with access list 1
+exit
+
+Permit incoming traffic only to 2.2.2.2:
+
+conf t
+access-list 2 permit 2.2.2.2 0.0.0.0
+int f0/1
+ip access-group 2 in  - or out
+exit
+exit
+
+Port security setup on L2 switch:
+
+enable
+conf t
+int g0/0
+switchport protected  - security mode for port
+switchport port-security mac-address sticky  - mode, specifying access for new mac address
+end
+disable
+
+
+Task solution:
+
+- Configure R1 and give it 256 MB RAM
+
+- Set up ip on computers. E.g. for GUEST-1:
+
+ip 192.168.0.2/24 192.168.0.1
+save
+
+- Set up interfaces on R1:
+
+conf t
+int f1/0
+ip addr dhcp
+int f0/0
+ip addr 192.168.0.1 255.255.255.0
+int f0/1
+ip addr 192.168.1.1 255.255.255.0
+int range f0/0 , f0/1 , f1/0
+no shutdown
+end
+
+- Set up NAT on R1:
+
+conf t
+access-list 1 permit 192.168.0.0 0.0.0.255
+access-list 1 permit 192.168.1.0 0.0.0.255
+int range f0/0 - 1
+ip nat inside
+int f1/0
+ip nat outside
+exit
+ip nat inside source list 1 interface f1/0 overload
+exit
+
+- Set up protected ports on L2Switch-1:
+
+enable
+conf t
+int range g0/1 - 2
+switchport protected
+switchport port-security mac-address sticky
+end
+wr mem
+disable
+
+- Permit incoming on f0/0 traffic go only to WEBSITE or to internet. Run on R1:
+
+conf t
+access-list 2 permit 192.168.1.4 0.0.0.0
+access-list 2 deny 192.168.1.0 0.0.0.255
+access-list 2 permit any
+int f0/0
+ip access-group 2 out
+end
+
+- Save R1 configuration:
+
+wr mem
