@@ -76,7 +76,7 @@ end
 wr mem
 disable
 
-- Permit incoming on f0/0 traffic go only to WEBSITE or to internet. Run on R1:
+- Permit incoming on f0/0 traffic go only from WEBSITE or from internet. Run on R1:
 
 conf t
 access-list 2 permit 192.168.1.4 0.0.0.0
